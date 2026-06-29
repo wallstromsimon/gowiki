@@ -45,7 +45,7 @@ func loadPage(title string) (*page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &page{Title: title, Body: string(body)}, nil
+	return new(page{Title: title, Body: string(body)}), nil
 }
 
 var templates = template.Must(template.ParseFS(templateFS, "html_templates/*.html"))
@@ -71,7 +71,7 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.PathValue("title")
 	p, err := loadPage(title)
 	if err != nil {
-		p = &page{Title: title}
+		p = new(page{Title: title})
 	}
 	renderTemplate(w, "edit", p)
 }
@@ -79,7 +79,7 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 func saveHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.PathValue("title")
 	body := r.FormValue("body")
-	p := &page{Title: title, Body: body}
+	p := new(page{Title: title, Body: body})
 	if err := p.save(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

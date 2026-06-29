@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o wiki .
 
-FROM alpine:3.20
+FROM alpine:3.21
 
 RUN apk --no-cache add ca-certificates \
 	&& adduser -D -g '' appuser
@@ -17,7 +17,6 @@ RUN apk --no-cache add ca-certificates \
 WORKDIR /home/appuser
 
 COPY --from=builder /app/wiki .
-COPY --from=builder /app/html_templates html_templates
 
 USER appuser
 

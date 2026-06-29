@@ -1,16 +1,17 @@
 # gowiki
 
-A small wiki based on the [Writing Web Applications](https://go.dev/doc/articles/wiki/) tutorial, updated for modern Go.
+A small wiki based on the [Writing Web Applications](https://go.dev/doc/articles/wiki/) tutorial, updated for Go 1.26.
 
 ## Prerequisites
 
-- Go 1.22 or later
+- Go 1.26 or later
 
 ## Check your code
 
 ```sh
 go fmt ./...
 go vet ./...
+go fix ./...
 ```
 
 Optional static analysis:
@@ -39,10 +40,11 @@ docker run -d -p 8080:8080 --mount source=wiki_data,target=/home/appuser/wiki_da
 
 ## What changed from the original tutorial
 
-- Go 1.22 path routing (`GET /view/{title}`) instead of regex-based handlers
+- Go 1.22+ path routing (`GET /view/{title}`) instead of regex-based handlers
+- Go 1.26 toolchain with `new(expr)` for page construction
 - `embed` for HTML templates instead of reading files from disk at runtime
 - `os.ReadFile` / `os.WriteFile` instead of deprecated `ioutil`
 - HTML auto-escaping via `html/template` (plain `string` body fields)
 - Path-safe file storage with `filepath.Join` and title validation
 - HTTP method enforcement on save (`POST` only)
-- Multi-stage Docker build with a pinned Go/Alpine version and non-root user
+- Multi-stage Docker build with pinned Go 1.26 / Alpine versions and non-root user
