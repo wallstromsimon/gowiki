@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 )
 
 //go:embed html_templates/*.html
@@ -57,8 +58,20 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *page) {
 	}
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request) {
+func titleFromRequest(w http.ResponseWriter, r *http.Request) (string, bool) {
 	title := r.PathValue("title")
+	if !titlePattern.MatchString(title) {
+		http.NotFound(w, r)
+		return "", false
+	}
+	return title, true
+}
+
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title, ok := titleFromRequest(w, r)
+	if !ok {
+		return
+	}
 	p, err := loadPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
@@ -68,7 +81,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.PathValue("title")
+	title, ok := titleFromRequest(w, r)
+	if !ok {
+		return
+	}
 	p, err := loadPage(title)
 	if err != nil {
 		p = new(page{Title: title})
@@ -77,7 +93,10 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.PathValue("title")
+	title, ok := titleFromRequest(w, r)
+	if !ok {
+		return
+	}
 	body := r.FormValue("body")
 	p := new(page{Title: title, Body: body})
 	if err := p.save(); err != nil {
@@ -88,12 +107,22 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("GET /view/{title}", viewHandler)
-	http.HandleFunc("GET /edit/{title}", editHandler)
-	http.HandleFunc("POST /save/{title}", saveHandler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /view/{title}", viewHandler)
+	mux.HandleFunc("GET /edit/{title}", editHandler)
+	mux.HandleFunc("POST /save/{title}", saveHandler)
+
+	server := &http.Server{
+		Addr:              ":8080",
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
 	log.Println("listening on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

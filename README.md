@@ -47,4 +47,6 @@ docker run -d -p 8080:8080 --mount source=wiki_data,target=/home/appuser/wiki_da
 - HTML auto-escaping via `html/template` (plain `string` body fields)
 - Path-safe file storage with `filepath.Join` and title validation
 - HTTP method enforcement on save (`POST` only)
+- Invalid page titles return 404 (same alphanumeric rule as the original tutorial)
+- `http.Server` timeouts instead of bare `ListenAndServe`
 - Multi-stage Docker build with pinned Go 1.26 / Alpine versions and non-root user
